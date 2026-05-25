@@ -1,0 +1,935 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>임용 암기장</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;600&family=Noto+Serif+KR:wght@400;600&display=swap');
+  :root {
+    --bg:#f7f5f0;--surface:#fff;--surface2:#f2f0eb;
+    --text:#1a1a18;--text2:#5a5a55;--text3:#9a9a95;
+    --accent:#2d5a3d;--accent-light:#e8f0eb;--accent2:#8b4513;
+    --border:#e0ddd6;--correct:#2d6a4f;--correct-bg:#d8f3dc;
+    --wrong:#c62828;--wrong-bg:#fde8e8;--hint:#7b5c00;--hint-bg:#fff8e1;
+    --radius:10px;--radius-lg:16px;
+    --shadow:0 1px 3px rgba(0,0,0,0.08);--shadow-md:0 4px 12px rgba(0,0,0,0.10);
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{font-family:'Noto Sans KR',sans-serif;background:var(--bg);color:var(--text);font-size:15px;line-height:1.7;min-height:100vh}
+  nav{background:var(--surface);border-bottom:1px solid var(--border);padding:0 24px;display:flex;align-items:center;justify-content:space-between;height:56px;position:sticky;top:0;z-index:100}
+  .nav-brand{font-family:'Noto Serif KR',serif;font-size:16px;font-weight:600;color:var(--accent)}
+  .nav-tabs{display:flex;gap:4px}
+  .nav-tab{padding:6px 14px;border:none;background:transparent;color:var(--text2);font-size:13px;font-family:'Noto Sans KR',sans-serif;cursor:pointer;border-radius:var(--radius);transition:all .15s;font-weight:400}
+  .nav-tab:hover{background:var(--surface2);color:var(--text)}
+  .nav-tab.active{background:var(--accent-light);color:var(--accent);font-weight:500}
+  .container{max-width:860px;margin:0 auto;padding:28px 20px}
+  .page{display:none}.page.active{display:block}
+  .section-title{font-size:13px;font-weight:500;color:var(--text3);letter-spacing:.5px;text-transform:uppercase;margin-bottom:12px}
+  .stat-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:28px}
+  .stat-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-lg);padding:16px 18px;text-align:center;box-shadow:var(--shadow)}
+  .stat-num{font-size:28px;font-weight:600;color:var(--accent);line-height:1.2;font-family:'Noto Serif KR',serif}
+  .stat-label{font-size:12px;color:var(--text3);margin-top:4px}
+  .attendance-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:6px;margin-bottom:8px}
+  .att-day-header{font-size:11px;color:var(--text3);text-align:center;padding:4px 0;font-weight:500}
+  .att-day{aspect-ratio:1;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:500;border:1px solid var(--border);background:var(--surface);color:var(--text3)}
+  .att-day.today{border-color:var(--accent);color:var(--accent)}
+  .att-day.checked{background:var(--accent);color:#fff;border-color:var(--accent)}
+  .att-day.empty{background:transparent;border-color:transparent}
+  .check-btn{background:var(--accent);color:#fff;border:none;border-radius:var(--radius);padding:10px 20px;font-size:14px;font-family:'Noto Sans KR',sans-serif;cursor:pointer;transition:opacity .15s;font-weight:500}
+  .check-btn:hover{opacity:.85}.check-btn:disabled{background:var(--text3);cursor:default}
+  .checked-msg{font-size:13px;color:var(--correct);margin-left:12px;display:none}
+  .streak-badge{display:inline-block;background:var(--hint-bg);color:var(--hint);border:1px solid #ffe082;border-radius:20px;padding:4px 12px;font-size:12px;font-weight:500;margin-bottom:12px}
+  .sets-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:16px}
+  .btn{background:var(--surface);color:var(--accent);border:1px solid var(--accent);border-radius:var(--radius);padding:8px 16px;font-size:13px;font-family:'Noto Sans KR',sans-serif;cursor:pointer;transition:all .15s;font-weight:500}
+  .btn:hover{background:var(--accent-light)}
+  .btn-primary{background:var(--accent);color:#fff;border-color:var(--accent)}
+  .btn-primary:hover{opacity:.85;background:var(--accent)}
+  .btn-sm{padding:5px 12px;font-size:12px}
+  .btn-danger{color:var(--wrong);border-color:var(--wrong)}
+  .btn-danger:hover{background:var(--wrong-bg)}
+  .set-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-lg);padding:16px 20px;margin-bottom:10px;display:flex;align-items:center;gap:16px;box-shadow:var(--shadow);transition:box-shadow .15s}
+  .set-card:hover{box-shadow:var(--shadow-md)}
+  .set-info{flex:1}
+  .set-name{font-size:15px;font-weight:500;color:var(--text)}
+  .set-meta{font-size:12px;color:var(--text3);margin-top:2px}
+  .set-progress-bar{height:4px;background:var(--surface2);border-radius:2px;margin-top:8px;overflow:hidden}
+  .set-progress-fill{height:100%;background:var(--accent);border-radius:2px;transition:width .3s}
+  .set-actions{display:flex;gap:8px}
+  .study-header{display:flex;align-items:center;gap:16px;margin-bottom:20px}
+  .back-btn{background:none;border:none;cursor:pointer;color:var(--text2);font-size:22px;padding:4px 8px;border-radius:6px;line-height:1;transition:color .15s}
+  .back-btn:hover{color:var(--text)}
+  .study-title{font-size:18px;font-weight:600}
+  .study-counter{margin-left:auto;font-size:13px;color:var(--text2);background:var(--surface2);padding:6px 12px;border-radius:20px;white-space:nowrap}
+  .text-block{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-lg);padding:24px 28px;line-height:2.2;font-size:15px;margin-bottom:20px;box-shadow:var(--shadow)}
+  .blank-wrap{display:inline-block;vertical-align:baseline;margin:0 2px}
+  .blank-input{font-family:'Noto Sans KR',sans-serif;font-size:14px;border:none;border-bottom:2px solid var(--accent);background:transparent;color:var(--text);outline:none;padding:2px 4px;text-align:center;min-width:60px;transition:border-color .15s}
+  .blank-input:focus{border-bottom-color:var(--accent2)}
+  .blank-input.correct{border-bottom:none;color:var(--correct);background:var(--correct-bg);border-radius:4px;padding:2px 6px}
+  .blank-input.wrong{border-bottom:none;color:var(--wrong);background:var(--wrong-bg);border-radius:4px;padding:2px 6px}
+  .blank-input.revealed{border-bottom:none;color:var(--hint);background:var(--hint-bg);border-radius:4px;padding:2px 6px;font-style:italic}
+  .blank-input:disabled{cursor:default}
+  .score-bar{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-lg);padding:14px 20px;display:flex;align-items:center;gap:12px;margin-bottom:16px;box-shadow:var(--shadow);flex-wrap:wrap}
+  .score-text{font-size:13px;color:var(--text2);flex:1;min-width:120px}
+  .score-nums{font-weight:600;font-size:15px}
+  .score-correct{color:var(--correct)}.score-wrong{color:var(--wrong)}
+  .btn-reveal{font-size:12px;color:var(--hint);border-color:var(--hint)}
+  .btn-reveal:hover{background:var(--hint-bg)}
+  .editor-wrap{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-lg);overflow:hidden;box-shadow:var(--shadow);margin-bottom:16px}
+  .editor-toolbar{background:var(--surface2);border-bottom:1px solid var(--border);padding:10px 16px;display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+  .editor-toolbar span{font-size:12px;color:var(--text3);margin-right:4px}
+  .toolbar-btn{background:var(--surface);border:1px solid var(--border);border-radius:6px;padding:4px 10px;font-size:12px;cursor:pointer;color:var(--text);font-family:'Noto Sans KR',sans-serif;transition:all .15s}
+  .toolbar-btn:hover{background:var(--accent-light);border-color:var(--accent);color:var(--accent)}
+  .editor-input{
+    width:100%;
+    min-height:420px;
+    border:none;
+    outline:none;
+    padding:28px 32px;
+    font-family:'Noto Sans KR',sans-serif;
+    font-size:15px;
+    line-height:2.1;
+    color:var(--text);
+    background:var(--surface);
+    resize:vertical;
+}
+  .editor-hint{
+    background:var(--accent-light);
+    padding:14px 24px;
+    border-top:1px solid var(--border);
+    font-size:13px;
+    color:var(--accent);
+    line-height:1.8
+  }
+  .modal-bg{display:none;position:fixed;inset:0;background:rgba(0,0,0,.4);z-index:200;align-items:center;justify-content:center}
+  .modal-bg.open{display:flex}
+  .modal{background:var(--surface);border-radius:var(--radius-lg);padding:28px;width:520px;max-width:95vw;box-shadow:0 20px 40px rgba(0,0,0,.15);max-height:90vh;overflow-y:auto}
+  .modal-title{font-size:18px;font-weight:600;margin-bottom:16px}
+  .form-group{margin-bottom:16px}
+  .form-label{display:block;font-size:13px;color:var(--text2);margin-bottom:6px;font-weight:500}
+  .form-input{width:100%;border:1px solid var(--border);border-radius:var(--radius);padding:8px 12px;font-family:'Noto Sans KR',sans-serif;font-size:14px;outline:none;color:var(--text);background:var(--surface)}
+  .form-input:focus{border-color:var(--accent)}
+  .modal-actions{display:flex;gap:10px;justify-content:flex-end;margin-top:8px}
+  .empty-state{text-align:center;padding:40px 20px;color:var(--text3)}
+  .empty-icon{font-size:40px;margin-bottom:12px}
+  .empty-text{font-size:14px}
+  .card-section{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-lg);padding:20px;margin-bottom:20px;box-shadow:var(--shadow)}
+  .card-section-title{font-size:14px;font-weight:600;color:var(--text);margin-bottom:14px;padding-bottom:10px;border-bottom:1px solid var(--border)}
+  .month-nav{display:flex;align-items:center;gap:10px;margin-bottom:14px}
+  .month-nav button{background:none;border:1px solid var(--border);border-radius:6px;width:28px;height:28px;cursor:pointer;font-size:14px;color:var(--text2);display:flex;align-items:center;justify-content:center}
+  .month-nav button:hover{background:var(--surface2)}
+  .month-label{font-size:14px;font-weight:500;color:var(--text)}
+  .results-box{background:var(--surface2);border-radius:var(--radius);padding:16px 20px;margin-bottom:16px}
+  .results-row{display:flex;justify-content:space-between;font-size:13px;color:var(--text2);margin-bottom:6px}
+  .results-row:last-child{margin-bottom:0}
+  .section-heading{font-weight:600;font-size:15px;color:var(--accent);margin:16px 0 6px;padding-bottom:4px;border-bottom:1px solid var(--accent-light)}
+  
+  .floating-blank-btn{
+    position:absolute;
+    z-index:9999;
+    background:var(--accent);
+    color:#fff;
+    border:none;
+    border-radius:8px;
+    padding:6px 10px;
+    font-size:12px;
+    cursor:pointer;
+    box-shadow:var(--shadow-md);
+    display:none;
+  }
+
+  @media(max-width:600px){
+    .stat-grid{grid-template-columns:repeat(2,1fr)}
+    nav{padding:0 14px}
+    .nav-tab{padding:5px 10px;font-size:12px}
+    .container{padding:16px 14px}
+    .text-block{padding:16px}
+  }
+</style>
+</head>
+<body>
+
+<nav>
+  <div class="nav-brand">📖 임용 암기장</div>
+  <div class="nav-tabs">
+    <button class="nav-tab active" onclick="showPage('home')">홈</button>
+    <button class="nav-tab" onclick="showPage('study')">학습</button>
+    <button class="nav-tab" onclick="showPage('editor')">편집</button>
+    <button class="nav-tab" onclick="showPage('attendance')">출석</button>
+  </div>
+</nav>
+
+<!-- HOME -->
+<div id="page-home" class="page active container">
+  <div class="stat-grid">
+    <div class="stat-card"><div class="stat-num" id="stat-sets">0</div><div class="stat-label">학습 세트</div></div>
+    <div class="stat-card"><div class="stat-num" id="stat-blanks">0</div><div class="stat-label">총 빈칸 수</div></div>
+    <div class="stat-card"><div class="stat-num" id="stat-accuracy">—</div><div class="stat-label">정답률</div></div>
+    <div class="stat-card"><div class="stat-num" id="stat-streak">0</div><div class="stat-label">연속 출석일</div></div>
+  </div>
+  <div class="card-section">
+    <div class="card-section-title">학습 세트 목록</div>
+    <div id="home-sets-list"></div>
+  </div>
+  <div class="card-section">
+    <div class="card-section-title">오늘의 진도</div>
+    <div id="today-progress"></div>
+  </div>
+</div>
+
+<!-- STUDY -->
+<div id="page-study" class="page container">
+  <div id="study-set-picker">
+    <div class="section-title">학습 세트 선택</div>
+    <div id="study-sets-list"></div>
+  </div>
+  <div id="study-content" style="display:none">
+    <div class="study-header">
+      <button class="back-btn" onclick="backToSets()">←</button>
+      <div>
+        <div class="study-title" id="study-title-text"></div>
+        <div style="font-size:12px;color:var(--text3)" id="study-subtitle"></div>
+      </div>
+      <div class="study-counter" id="study-counter"></div>
+    </div>
+    <div class="score-bar">
+      <div class="score-text">
+        맞춤: <span class="score-correct score-nums" id="score-correct">0</span>&nbsp;
+        틀림: <span class="score-wrong score-nums" id="score-wrong">0</span>&nbsp;
+        미입력: <span class="score-nums" id="score-empty" style="color:var(--text3)">0</span>
+      </div>
+      <button class="btn btn-sm btn-reveal" onclick="revealAll()">정답 보기</button>
+      <button class="btn btn-sm" onclick="resetStudy()">다시 풀기</button>
+    </div>
+    <div id="study-text-area" class="text-block"></div>
+    <div class="results-box" id="results-box" style="display:none">
+      <div class="results-row"><span>정답</span><span class="score-correct" id="res-correct"></span></div>
+      <div class="results-row"><span>오답</span><span class="score-wrong" id="res-wrong"></span></div>
+      <div class="results-row"><span>정답률</span><span id="res-rate"></span></div>
+      <div id="praise-message" style="margin-top:12px;font-size:14px;font-weight:600;color:var(--accent)"></div>
+    </div>
+  </div>
+</div>
+
+<!-- EDITOR -->
+<div id="page-editor" class="page container">
+  <div class="sets-header">
+    <div>
+      <div style="font-size:18px;font-weight:600">학습 세트 관리</div>
+      <div style="font-size:13px;color:var(--text3);margin-top:2px">빈칸은 <strong>[[정답]]</strong> 형식으로 작성하세요</div>
+    </div>
+    <button class="btn btn-primary" onclick="openNewSetModal()">+ 새 세트 만들기</button>
+  </div>
+  <div id="editor-sets-list"></div>
+</div>
+
+<!-- ATTENDANCE -->
+<div id="page-attendance" class="page container">
+  <div class="card-section">
+    <div class="card-section-title" style="display:flex;align-items:center;justify-content:space-between">
+      <span>출석 체크</span>
+      <span class="streak-badge" id="streak-badge">🔥 0일 연속</span>
+    </div>
+    <div style="display:flex;align-items:center;gap:12px;margin-bottom:20px">
+      <button class="check-btn" id="check-btn" onclick="checkAttendance()">오늘 출석 체크</button>
+      <span class="checked-msg" id="checked-msg">✓ 오늘 출석 완료!</span>
+    </div>
+    <div class="month-nav">
+      <button onclick="prevMonth()">‹</button>
+      <span class="month-label" id="cal-month-label"></span>
+      <button onclick="nextMonth()">›</button>
+    </div>
+    <div class="attendance-grid">
+      <div class="att-day-header">일</div><div class="att-day-header">월</div>
+      <div class="att-day-header">화</div><div class="att-day-header">수</div>
+      <div class="att-day-header">목</div><div class="att-day-header">금</div>
+      <div class="att-day-header">토</div>
+    </div>
+    <div class="attendance-grid" id="att-calendar"></div>
+    <div style="font-size:12px;color:var(--text3);margin-top:12px">
+      <span style="display:inline-block;width:12px;height:12px;background:var(--accent);border-radius:3px;vertical-align:middle;margin-right:4px"></span>출석일
+      <span style="display:inline-block;width:12px;height:12px;border:1px solid var(--border);border-radius:3px;vertical-align:middle;margin-left:10px;margin-right:4px"></span>미출석
+    </div>
+  </div>
+  <div class="card-section">
+    <div class="card-section-title">출석 통계</div>
+    <div class="stat-grid">
+      <div class="stat-card"><div class="stat-num" id="att-total">0</div><div class="stat-label">총 출석일</div></div>
+      <div class="stat-card"><div class="stat-num" id="att-streak">0</div><div class="stat-label">연속 출석</div></div>
+      <div class="stat-card"><div class="stat-num" id="att-month">0</div><div class="stat-label">이번 달</div></div>
+      <div class="stat-card"><div class="stat-num" id="att-rate">0%</div><div class="stat-label">이번 달 출석률</div></div>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL -->
+<div class="modal-bg" id="set-modal" onclick="onModalBgClick(event)">
+  <div class="modal">
+    <div class="modal-title" id="modal-title">새 학습 세트</div>
+    <div class="form-group">
+      <label class="form-label">세트 이름</label>
+      <input class="form-input" id="modal-set-name" placeholder="예) 2022 개정 총론 - 교육과정 성격">
+    </div>
+    <div class="form-group">
+      <label class="form-label">내용 <span style="color:var(--text3);font-size:11px;font-weight:400">빈칸: [[정답]]</span></label>
+      <div class="editor-wrap" style="margin-bottom:0">
+        <div class="editor-toolbar">
+          <span>빠른 삽입:</span>
+          <button class="toolbar-btn" onclick="insertBlank()">[ ] 빈칸 추가</button>
+          <button class="toolbar-btn" onclick="wrapSelectedText()">드래그 빈칸화</button>
+          <button class="toolbar-btn" onclick="insertSection()">## 소제목</button>
+        </div>
+        <textarea class="editor-input" id="modal-content" placeholder="예) 이 교육과정은 [[초·중등교육법]] 제23조제2항에 의거하여 고시한 것으로, [[국가 수준]]에서 제시한 것이다."></textarea>
+        <div class="editor-hint">💡 <strong>[[정답]]</strong> 형식으로 빈칸을 만드세요. 예: 핵심역량 6가지 중 <strong>[[자기관리 역량]]</strong>은 ...</div>
+      </div>
+    </div>
+    <div class="modal-actions">
+      <button class="btn" onclick="closeModal()">취소</button>
+      <button class="btn btn-primary" onclick="saveSet()">저장</button>
+    </div>
+  </div>
+</div>
+
+<script>
+// ===== STATE =====
+var state = { sets:[], attendance:[], stats:{totalAttempts:0,totalCorrect:0} };
+var editingSetId = null;
+var currentBlanks = [];
+var currentSetId = null;
+var calYear, calMonth;
+
+function save() {
+  try { localStorage.setItem('imyong_v3', JSON.stringify(state)); } catch(e){}
+}
+function load() {
+  try {
+    var d = localStorage.getItem('imyong_v3');
+    if (d) state = JSON.parse(d);
+  } catch(e){}
+  if (!state.sets) state.sets = [];
+  if (!state.attendance) state.attendance = [];
+  if (!state.stats) state.stats = {totalAttempts:0,totalCorrect:0};
+}
+
+// ===== UTILS =====
+function esc(s) {
+  return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+function todayStr() {
+  var d = new Date();
+  return d.getFullYear()+'-'+pad(d.getMonth()+1)+'-'+pad(d.getDate());
+}
+function pad(n){ return n < 10 ? '0'+n : String(n); }
+function countBlanks(c){ return (c.match(/\[\[[^\]]+\]\]/g)||[]).length; }
+function normalize(s){ return s.replace(/[\s\u00B7\u22C5\u30FB\u2022\u00B0\!\?\.\,\-\_\~\(\)\[\]\{\}\/\\\:\;\"\'\`\^\@\#\$\%\&\*\+\=\<\>]/g,'').toLowerCase(); }
+
+// ===== NAV =====
+function showPage(name) {
+  document.querySelectorAll('.page').forEach(function(p){ p.classList.remove('active'); });
+  document.querySelectorAll('.nav-tab').forEach(function(t){ t.classList.remove('active'); });
+  document.getElementById('page-'+name).classList.add('active');
+  var tabs = document.querySelectorAll('.nav-tab');
+  var idx = ['home','study','editor','attendance'].indexOf(name);
+  if (idx >= 0) tabs[idx].classList.add('active');
+  if (name==='home') renderHome();
+  else if (name==='study') renderStudyPicker();
+  else if (name==='editor') renderEditor();
+  else if (name==='attendance') renderAttendance();
+}
+
+// ===== HOME =====
+function renderHome() {
+  var totalBlanks = state.sets.reduce(function(a,s){ return a+countBlanks(s.content); },0);
+  document.getElementById('stat-sets').textContent = state.sets.length;
+  document.getElementById('stat-blanks').textContent = totalBlanks;
+  var acc = state.stats.totalAttempts > 0
+    ? Math.round(state.stats.totalCorrect/state.stats.totalAttempts*100)+'%' : '—';
+  document.getElementById('stat-accuracy').textContent = acc;
+  document.getElementById('stat-streak').textContent = getStreak();
+
+  var list = document.getElementById('home-sets-list');
+  if (state.sets.length === 0) {
+    list.innerHTML = '<div class="empty-state"><div class="empty-icon">📝</div><div class="empty-text">아직 학습 세트가 없어요.<br>편집 탭에서 세트를 만들어보세요!</div></div>';
+  } else {
+    list.innerHTML = state.sets.map(function(s){
+      var blanks = countBlanks(s.content);
+      var prog = s.progress || {};
+      var done = Object.keys(prog).length;
+      var pct = blanks > 0 ? Math.round(done/blanks*100) : 0;
+      var rate = s.attempts > 0
+        ? Math.round(s.correct / s.attempts * 100)
+        : 0;
+      return '<div class="set-card">'
+        +'<div class="set-info">'
+        +'<div class="set-name">'+esc(s.name)+'</div>'
+        +'<div class="set-meta">'
+        + '빈칸 '+blanks+'개'
+        + ' · 학습 '+(s.studyCount||0)+'회'
+        + ' · 정답률 '+rate+'%'
+        + ' · 최고 '+(s.bestRate||0)+'%'
+        + '</div>'
+        +'<div class="set-progress-bar"><div class="set-progress-fill" style="width:'+pct+'%"></div></div>'
+        +'</div>'
+        +'<button class="btn btn-sm btn-primary" onclick="startStudy(\''+s.id+'\')">학습 시작</button>'
+        +'</div>';
+    }).join('');
+  }
+  var checked = state.attendance.includes(todayStr());
+  document.getElementById('today-progress').innerHTML =
+    '<div style="font-size:14px;color:var(--text2)">'
+    +(checked?'✅ 오늘 출석 완료':'❌ 아직 출석 안 함')
+    +' &nbsp;·&nbsp; 총 학습 세트 <strong>'+state.sets.length+'개</strong></div>';
+}
+
+// ===== STUDY =====
+function renderStudyPicker() {
+  // reset study view
+  document.getElementById('study-set-picker').style.display = 'block';
+  document.getElementById('study-content').style.display = 'none';
+  currentSetId = null;
+
+  var list = document.getElementById('study-sets-list');
+  if (state.sets.length === 0) {
+    list.innerHTML = '<div class="empty-state"><div class="empty-icon">📚</div><div class="empty-text">학습 세트가 없어요. 편집 탭에서 만들어보세요!</div></div>';
+    return;
+  }
+  list.innerHTML = state.sets.map(function(s){
+    var blanks = countBlanks(s.content);
+    var prog = s.progress || {};
+    var done = Object.keys(prog).length;
+    var pct = blanks > 0 ? Math.round(done/blanks*100) : 0;
+    var rate = s.attempts > 0
+      ? Math.round(s.correct / s.attempts * 100)
+      : 0;
+    return '<div class="set-card">'
+      +'<div class="set-info">'
+      +'<div class="set-name">'+esc(s.name)+'</div>'
+      +'<div class="set-meta">'
+      + '빈칸 '+blanks+'개'
+      + ' · 학습 '+(s.studyCount||0)+'회'
+      + ' · 정답률 '+rate+'%'
+      + ' · 최고 '+(s.bestRate||0)+'%'
+      + '</div>'
+      +'<div class="set-progress-bar"><div class="set-progress-fill" style="width:'+pct+'%"></div></div>'
+      +'</div>'
+      +'<button class="btn btn-primary" onclick="startStudy(\''+s.id+'\')">학습 시작</button>'
+      +'</div>';
+  }).join('');
+}
+
+function startStudy(id) {
+  var s = state.sets.find(function(x){ return x.id===id; });
+  if (!s) return;
+  currentSetId = id;
+
+  s.studyCount = (s.studyCount || 0) + 1;
+  s.lastStudied = todayStr();
+  save();
+  document.getElementById('study-set-picker').style.display = 'none';
+  document.getElementById('study-content').style.display = 'block';
+  document.getElementById('study-title-text').textContent = s.name;
+  // make study tab active without re-rendering picker
+  document.querySelectorAll('.page').forEach(function(p){ p.classList.remove('active'); });
+  document.querySelectorAll('.nav-tab').forEach(function(t){ t.classList.remove('active'); });
+  document.getElementById('page-study').classList.add('active');
+  document.querySelectorAll('.nav-tab')[1].classList.add('active');
+  renderStudyContent(s);
+}
+
+function backToSets() {
+  document.getElementById('study-set-picker').style.display = 'block';
+  document.getElementById('study-content').style.display = 'none';
+  currentSetId = null;
+  renderStudyPicker();
+}
+
+function renderStudyContent(s) {
+  currentBlanks = [];
+  var blanks = [];
+  var html = parseContent(s.content, blanks);
+  currentBlanks = blanks;
+
+  document.getElementById('study-text-area').innerHTML = html;
+  document.getElementById('study-counter').textContent = '빈칸 '+blanks.length+'개';
+  document.getElementById('study-subtitle').textContent = '총 '+blanks.length+'개 빈칸';
+  document.getElementById('results-box').style.display = 'none';
+
+  var prog = s.progress || {};
+  blanks.forEach(function(b, i){
+    var inp = document.getElementById('blank-'+i);
+    if (!inp) return;
+    if (prog[i] !== undefined) {
+      inp.value = prog[i].value || '';
+      if (prog[i].state==='correct') { inp.classList.add('correct'); inp.disabled = true; }
+      else if (prog[i].state==='wrong') { inp.classList.add('wrong'); }
+      else if (prog[i].state==='revealed') { inp.classList.add('revealed'); inp.disabled = true; }
+    }
+    inp.addEventListener('keydown', function(e){
+      if(e.key==='Enter') {
+        e.preventDefault();
+        checkBlank(i, true);
+      }
+    });
+    inp.addEventListener('input', function(){ sizeInput(inp); });
+    sizeInput(inp);
+  });
+  updateScore();
+}
+
+// KEY FIX: parseContent builds HTML safely using DOM text nodes via a placeholder approach
+function parseContent(content, blanks) {
+  var idx = 0;
+  var lines = content.split('\n');
+  var html = '';
+  lines.forEach(function(line){
+    if (line.startsWith('## ')) {
+      // heading - escape the heading text
+      html += '<div class="section-heading">'+esc(line.slice(3))+'</div>';
+    } else {
+      // Split on [[...]] tokens - process text and blank parts separately
+      var parts = line.split(/(\[\[[^\]]+\]\])/);
+      var lineHtml = '';
+      parts.forEach(function(part){
+        var m = part.match(/^\[\[([^\]]+)\]\]$/);
+        if (m) {
+          var answer = m[1].trim();
+          var w = Math.max(answer.length * 15, 70);
+          var i = idx++;
+          blanks.push({answer: answer, index: i});
+          lineHtml += '<span class="blank-wrap"><input class="blank-input" id="blank-'+i
+            +'" type="text" placeholder="?" style="width:'+w+'px"'
+            +' autocomplete="off" autocorrect="off" spellcheck="false"></span>';
+        } else {
+          // plain text - must be HTML-escaped
+          lineHtml += esc(part);
+        }
+      });
+      html += '<span>'+lineHtml+'</span><br>';
+    }
+  });
+  return html;
+}
+
+function sizeInput(inp) {
+  var len = inp.value.length;
+  inp.style.width = Math.max(len*15, 70)+'px';
+}
+
+function checkBlank(i, moveNext) {
+  var inp = document.getElementById('blank-'+i);
+  if (!inp || inp.disabled) return;
+  var userVal = inp.value.trim();
+  if (!userVal) return;
+  var correct = currentBlanks[i].answer;
+  var isCorrect = normalize(userVal) === normalize(correct);
+
+  if (isCorrect) {
+    inp.classList.remove('wrong');
+    inp.classList.add('correct');
+    inp.disabled = true;
+    saveBlankProgress(i, userVal, 'correct');
+    state.stats.totalAttempts++;
+    state.stats.totalCorrect++;
+
+    var s = state.sets.find(function(x){ return x.id===currentSetId; });
+    if (s) {
+      s.attempts = (s.attempts || 0) + 1;
+      s.correct = (s.correct || 0) + 1;
+    }
+
+    save();
+    // move to next blank
+    for (var j=i+1; j<currentBlanks.length; j++) {
+      var next = document.getElementById('blank-'+j);
+      if (next && !next.disabled) { next.focus(); break; }
+    }
+  } else {
+    inp.classList.remove('correct');
+    inp.classList.add('wrong');
+    saveBlankProgress(i, userVal, 'wrong');
+    state.stats.totalAttempts++;
+
+    var s = state.sets.find(function(x){ return x.id===currentSetId; });
+    if (s) {
+      s.attempts = (s.attempts || 0) + 1;
+    }
+
+    save();
+    inp.disabled = false;
+
+    if (moveNext) {
+      for (var j=i+1; j<currentBlanks.length; j++) {
+        var next = document.getElementById('blank-'+j);
+        if (next && !next.disabled) {
+          next.focus();
+          break;
+        }
+      }
+    }
+  }
+  updateScore();
+}
+
+function saveBlankProgress(i, value, st) {
+  var s = state.sets.find(function(x){ return x.id===currentSetId; });
+  if (!s) return;
+  if (!s.progress) s.progress = {};
+  s.progress[i] = {value:value, state:st};
+}
+
+function updateScore() {
+  var correct=0, wrong=0, empty=0;
+  currentBlanks.forEach(function(b,i){
+    var inp = document.getElementById('blank-'+i);
+    if (!inp) return;
+    if (inp.classList.contains('correct')) correct++;
+    else if (inp.classList.contains('wrong')) wrong++;
+    else if (inp.classList.contains('revealed')) {}
+    else empty++;
+  });
+  document.getElementById('score-correct').textContent = correct;
+  document.getElementById('score-wrong').textContent = wrong;
+  document.getElementById('score-empty').textContent = empty;
+  if (empty===0 && currentBlanks.length>0) {
+    var total = correct+wrong;
+    var rate = total>0 ? Math.round(correct/total*100) : 0;
+    var rb = document.getElementById('results-box');
+    rb.style.display = 'block';
+    document.getElementById('res-correct').textContent = correct+'개';
+    document.getElementById('res-wrong').textContent = wrong+'개';
+    document.getElementById('res-rate').textContent = rate+'%';
+
+    var praise = '';
+
+    if (rate >= 90) {
+      praise = '🔥 완벽해요! 거의 다 익혔네요.';
+    }
+    else if (rate >= 80) {
+      praise = '👏 아주 좋아요! 조금만 더 복습하면 완성!';
+    }
+    else if (rate >= 70) {
+      praise = '📚 잘하고 있어요. 헷갈리는 부분만 다시 보면 돼요!';
+    }
+    else {
+      praise = '💪 괜찮아요! 반복할수록 훨씬 빨라질 거예요.';
+    }
+
+    document.getElementById('praise-message').textContent = praise;
+
+    var s = state.sets.find(function(x){ return x.id===currentSetId; });
+
+    if (s && rate > (s.bestRate || 0)) {
+      s.bestRate = rate;
+      save();
+    }
+  }
+}
+
+function revealAll() {
+  var s = state.sets.find(function(x){ return x.id===currentSetId; });
+
+  currentBlanks.forEach(function(b,i){
+    var inp = document.getElementById('blank-'+i);
+    if (!inp || inp.disabled) return;
+
+    if (!inp.value.trim()) {
+      state.stats.totalAttempts++;
+
+      if (s) {
+        s.attempts = (s.attempts || 0) + 1;
+      }
+    }
+
+    inp.value = b.answer;
+    inp.classList.remove('wrong');
+    inp.classList.add('revealed');
+    inp.disabled = true;
+
+    saveBlankProgress(i, b.answer, 'revealed');
+    sizeInput(inp);
+  });
+
+  save();
+  updateScore();
+}
+
+function resetStudy() {
+  var s = state.sets.find(function(x){ return x.id===currentSetId; });
+  if (!s) return;
+  s.progress = {};
+  save();
+  renderStudyContent(s);
+}
+
+// ===== EDITOR =====
+function renderEditor() {
+  var list = document.getElementById('editor-sets-list');
+  if (state.sets.length===0) {
+    list.innerHTML = '<div class="empty-state"><div class="empty-icon">✏️</div><div class="empty-text">세트가 없어요. "새 세트 만들기"를 눌러 시작하세요!</div></div>';
+    return;
+  }
+  list.innerHTML = state.sets.map(function(s){
+    var blanks = countBlanks(s.content);
+    return '<div class="set-card">'
+      +'<div class="set-info">'
+      +'<div class="set-name">'+esc(s.name)+'</div>'
+      +'<div class="set-meta">빈칸 '+blanks+'개 · 마지막 수정: '+(s.updated||'—')+'</div>'
+      +'</div>'
+      +'<div class="set-actions">'
+      +'<button class="btn btn-sm" onclick="editSet(\''+s.id+'\')">편집</button>'
+      +'<button class="btn btn-sm btn-danger" onclick="deleteSet(\''+s.id+'\')">삭제</button>'
+      +'</div></div>';
+  }).join('');
+}
+
+function openNewSetModal() {
+  editingSetId = null;
+  document.getElementById('modal-title').textContent = '새 학습 세트';
+  document.getElementById('modal-set-name').value = '';
+  document.getElementById('modal-content').value = '';
+  document.getElementById('set-modal').classList.add('open');
+}
+
+function editSet(id) {
+  var s = state.sets.find(function(x){ return x.id===id; });
+  if (!s) return;
+  editingSetId = id;
+  document.getElementById('modal-title').textContent = '세트 편집';
+  document.getElementById('modal-set-name').value = s.name;
+  document.getElementById('modal-content').value = s.content;
+  document.getElementById('set-modal').classList.add('open');
+}
+
+function saveSet() {
+  var name = document.getElementById('modal-set-name').value.trim();
+  var content = document.getElementById('modal-content').value.trim();
+  if (!name) { alert('세트 이름을 입력하세요.'); return; }
+  if (!content) { alert('내용을 입력하세요.'); return; }
+  var today = new Date().toLocaleDateString('ko-KR');
+  if (editingSetId) {
+    var s = state.sets.find(function(x){ return x.id===editingSetId; });
+    if (s) { s.name=name; s.content=content; s.updated=today; s.progress={}; }
+  } else {
+    state.sets.push({
+      id:'set_'+Date.now(),
+      name:name,
+      content:content,
+      updated:today,
+      progress:{},
+      studyCount:0,
+      attempts:0,
+      correct:0,
+      bestRate:0,
+      lastStudied:null
+    });
+  }
+  save();
+  closeModal();
+  renderEditor();
+}
+
+function deleteSet(id) {
+  if (!confirm('이 세트를 삭제할까요?')) return;
+  state.sets = state.sets.filter(function(x){ return x.id!==id; });
+  save();
+  renderEditor();
+}
+
+function closeModal() { document.getElementById('set-modal').classList.remove('open'); }
+function onModalBgClick(e) { if (e.target===document.getElementById('set-modal')) closeModal(); }
+
+function insertBlank() {
+  var ta = document.getElementById('modal-content');
+  var start=ta.selectionStart, end=ta.selectionEnd;
+  var sel = ta.value.slice(start,end) || '정답';
+  ta.value = ta.value.slice(0,start)+'[['+sel+']]'+ta.value.slice(end);
+  ta.focus();
+  ta.setSelectionRange(start+2, start+2+sel.length);
+}
+
+function insertSection() {
+  var ta = document.getElementById('modal-content');
+  var pos = ta.selectionStart;
+  ta.value = ta.value.slice(0,pos)+'\n## 소제목\n'+ta.value.slice(pos);
+  ta.focus();
+}
+
+function wrapSelectedText() {
+  var ta = document.getElementById('modal-content');
+
+  var start = ta.selectionStart;
+  var end = ta.selectionEnd;
+
+  if (start === end) {
+    hideFloatingButton();
+    return;
+  }
+
+  var selected = ta.value.slice(start, end);
+
+  ta.value =
+    ta.value.slice(0, start)
+    + '[[' + selected + ']]'
+    + ta.value.slice(end);
+
+  ta.focus();
+
+  var newPos = end + 4;
+  ta.setSelectionRange(newPos, newPos);
+
+  hideFloatingButton();
+}
+
+function showFloatingButton(x, y) {
+  var btn = document.getElementById('floating-blank-btn');
+  btn.style.left = x + 'px';
+  btn.style.top = y + 'px';
+  btn.style.display = 'block';
+}
+
+function hideFloatingButton() {
+  var btn = document.getElementById('floating-blank-btn');
+  btn.style.display = 'none';
+}
+
+// ===== ATTENDANCE =====
+function getStreak() {
+  if (state.attendance.length===0) return 0;
+  var streak = 0;
+  var check = new Date();
+  var today = todayStr();
+  if (!state.attendance.includes(today)) check.setDate(check.getDate()-1);
+  for (var i=0; i<365; i++) {
+    var ds = check.getFullYear()+'-'+pad(check.getMonth()+1)+'-'+pad(check.getDate());
+    if (state.attendance.includes(ds)) { streak++; check.setDate(check.getDate()-1); }
+    else break;
+  }
+  return streak;
+}
+
+function checkAttendance() {
+  var today = todayStr();
+  if (!state.attendance.includes(today)) { state.attendance.push(today); save(); }
+  renderAttendance();
+}
+
+function renderAttendance() {
+  var today = todayStr();
+  var checked = state.attendance.includes(today);
+  var btn = document.getElementById('check-btn');
+  var msg = document.getElementById('checked-msg');
+  btn.disabled = checked;
+  btn.textContent = checked ? '✓ 출석 완료' : '오늘 출석 체크';
+  msg.style.display = checked ? 'inline' : 'none';
+  var streak = getStreak();
+  document.getElementById('streak-badge').textContent = '🔥 '+streak+'일 연속';
+  renderCalendar();
+  document.getElementById('att-total').textContent = state.attendance.length;
+  document.getElementById('att-streak').textContent = streak;
+  var now = new Date();
+  var ym = now.getFullYear()+'-'+pad(now.getMonth()+1);
+  var monthChecked = state.attendance.filter(function(d){ return d.startsWith(ym); }).length;
+  var daysPassed = now.getDate();
+  document.getElementById('att-month').textContent = monthChecked;
+  document.getElementById('att-rate').textContent = Math.round(monthChecked/daysPassed*100)+'%';
+}
+
+function renderCalendar() {
+  var label = calYear+'년 '+(calMonth+1)+'월';
+  document.getElementById('cal-month-label').textContent = label;
+  var firstDay = new Date(calYear, calMonth, 1).getDay();
+  var daysInM = new Date(calYear, calMonth+1, 0).getDate();
+  var today = todayStr();
+  var html = '';
+  for (var i=0; i<firstDay; i++) html += '<div class="att-day empty"></div>';
+  for (var d=1; d<=daysInM; d++) {
+    var ds = calYear+'-'+pad(calMonth+1)+'-'+pad(d);
+    var cls = 'att-day';
+    if (ds===today) cls += ' today';
+    if (state.attendance.includes(ds)) cls += ' checked';
+    html += '<div class="'+cls+'">'+d+'</div>';
+  }
+  document.getElementById('att-calendar').innerHTML = html;
+}
+
+function prevMonth() {
+  if (calMonth===0) { calMonth=11; calYear--; } else calMonth--;
+  renderCalendar();
+  document.getElementById('cal-month-label').textContent = calYear+'년 '+(calMonth+1)+'월';
+}
+function nextMonth() {
+  if (calMonth===11) { calMonth=0; calYear++; } else calMonth++;
+  renderCalendar();
+  document.getElementById('cal-month-label').textContent = calYear+'년 '+(calMonth+1)+'월';
+}
+
+// ===== SAMPLE DATA =====
+function loadSample() {
+  if (state.sets.length > 0) return;
+  state.sets = [
+    {
+      id:'set_sample1', name:'2022 개정 총론 - 교육과정 성격', updated:'샘플', progress:{},
+      content:'## 교육과정의 성격\n이 교육과정은 [[초·중등교육법]] 제23조제2항에 의거하여 고시한 것으로, 초·중등학교의 교육 목적을 달성하기 위해 초·중등학교에서 운영하여야 할 학교 교육과정의 [[공통적]]이고 [[일반적]]인 기준을 [[국가 수준]]에서 제시한 것이다.\n\n## 교육과정 기준의 성격\n가. [[국가 수준]]의 공통성을 바탕으로 지역, 학교, 개인 수준의 [[다양성]]을 추구할 수 있도록 학교 교육과정의 기준과 내용에 관한 기본사항을 제시한다.\n나. 학교 교육과정이 학생을 중심에 두고 [[주도성]]과 [[자율성]], 창의성의 신장 등 학습자 성장을 지원할 수 있도록 교육과정의 기준과 내용을 제시한다.\n다. 학교의 전반적인 교육 체제를 [[교육과정 중심]]으로 운영할 수 있도록 교육과정의 기준과 내용을 제시한다.'
+    },
+    {
+      id:'set_sample2', name:'2022 개정 총론 - 핵심역량 6가지', updated:'샘플', progress:{},
+      content:'## 핵심역량 6가지\n1. [[자기관리 역량]] - 자아정체성과 자신감을 가지고 자신의 삶과 진로를 스스로 설계\n2. [[지식정보처리 역량]] - 문제를 합리적으로 해결하기 위해 다양한 영역의 지식과 정보를 깊이 있게 이해하고 비판적으로 탐구하며 활용\n3. [[창의적 사고 역량]] - 폭넓은 기초 지식을 바탕으로 다양한 전문 분야의 지식, 기술, 경험을 융합적으로 활용하여 새로운 것을 창출\n4. [[심미적 감성 역량]] - 인간에 대한 공감적 이해와 문화적 감수성을 바탕으로 삶의 의미와 가치를 성찰하고 향유\n5. [[협력적 소통 역량]] - 다른 사람의 관점을 존중하고 경청하며, 자신의 생각과 감정을 효과적으로 표현\n6. [[공동체 역량]] - 지역·국가·세계 공동체의 구성원에게 요구되는 개방적·포용적 가치와 태도'
+    },
+    {
+      id:'set_sample3', name:'2022 개정 총론 - 추구하는 인간상', updated:'샘플', progress:{},
+      content:'## 추구하는 인간상 4가지\n1. [[자기주도적인 사람]] - 전인적 성장을 바탕으로 자아정체성을 확립하고 자신의 진로와 삶을 스스로 개척\n2. [[창의적인 사람]] - 폭넓은 기초능력을 바탕으로 진취적 발상과 도전으로 새로운 가치를 창출\n3. [[교양있는 사람]] - 문화적 소양과 다원적 가치에 대한 이해를 바탕으로 인류 문화를 향유하고 발전\n4. [[더불어 사는 사람]] - 공동체 의식을 바탕으로 다양성을 이해하고 서로 존중하며 세계와 소통하는 민주시민\n\n## 초등학교 교육목표 핵심 키워드\n초등학교 교육은 학생의 일상생활과 학습에 필요한 [[기본 습관]] 및 [[기초 능력]]을 기르고 [[바른 인성]]을 함양하는 데 중점을 둔다.'
+    }
+  ];
+  save();
+}
+
+
+// ===== DRAG BLANK TOOL =====
+document.addEventListener('DOMContentLoaded', function() {
+  var ta = document.getElementById('modal-content');
+
+  ta.addEventListener('mouseup', function(e) {
+    setTimeout(function() {
+      var start = ta.selectionStart;
+      var end = ta.selectionEnd;
+
+      if (start !== end) {
+        showFloatingButton(e.pageX + 10, e.pageY - 10);
+      } else {
+        hideFloatingButton();
+      }
+    }, 10);
+  });
+
+  ta.addEventListener('keyup', function() {
+    var start = ta.selectionStart;
+    var end = ta.selectionEnd;
+
+    if (start === end) {
+      hideFloatingButton();
+    }
+  });
+
+  document.addEventListener('click', function(e) {
+    if (!e.target.closest('.floating-blank-btn')) {
+      if (e.target.id !== 'modal-content') {
+        hideFloatingButton();
+      }
+    }
+  });
+});
+
+
+// ===== INIT =====
+load();
+loadSample();
+var _now = new Date();
+calYear = _now.getFullYear();
+calMonth = _now.getMonth();
+renderHome();
+</script>
+
+<button id="floating-blank-btn" class="floating-blank-btn" onclick="wrapSelectedText()">빈칸 만들기</button>
+
+</body>
+</html>
